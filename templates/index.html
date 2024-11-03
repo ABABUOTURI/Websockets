@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Voting System</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        #results {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 12px 25px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:active {
+            background-color: #1e7e34;
+        }
+        #vote-results {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #vote-results li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #e9f7ef;
+            border-left: 5px solid #28a745;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vote for Your Favorite Presidential Candidate</h1>
+    <div>
+        <button onclick="submitVote('Joe Biden')">Joe Biden</button>
+        <button onclick="submitVote('Donald Trump')">Donald Trump</button>
+        <button onclick="submitVote('Ron DeSantis')">Ron DeSantis</button>
+    </div>
+    <div id="results">
+        <h2>Live Voting Results</h2>
+        <ul id="vote-results"></ul>
+    </div>
+
+    <script>
+        const socket = io.connect('http://localhost:5000');
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+    
+        socket.on('vote_update', function(data) {
+    console.log('Received data at:', new Date());  // Log the timestamp when data is received
+    console.log('Received updated votes:', data);
+    const voteResults = document.getElementById('vote-results');
+    voteResults.innerHTML = '';  // Clear current results
+    for (let option in data) {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${option}: ${data[option]} votes`;
+        voteResults.appendChild(listItem);
+    }
+});
+    
+        function submitVote(option) {
+            fetch('/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ option: option })
+            }).then(response => response.json())
+              .then(data => console.log(data));
+        }
+    </script>
+    
+</body>
+</html>
